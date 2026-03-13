@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiskCast — Building AI Systems That Actually Run Your Business</title>
+<meta name="description" content="A podcast about the real, unfiltered process of building self-hosted AI agents. Not theory. Not hype. What actually happens.">
+<meta property="og:title" content="RiskCast">
+<meta property="og:description" content="A risk of lobsters. Building AI systems that actually run your business.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://riskcast.ai">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a0d;
+    --bg-card: #13121a;
+    --bg-elevated: #1c1a26;
+    --text: #ece8e1;
+    --text-dim: #8a8494;
+    --text-muted: #5c5768;
+    --accent: #d94f3f;
+    --accent-glow: rgba(217, 79, 63, 0.15);
+    --accent-soft: #e8786b;
+    --border: #2a2636;
+    --border-subtle: #1f1c28;
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'Outfit', sans-serif;
+    --font-mono: 'DM Mono', 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ── Background ── */
+  .bg-grain {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .bg-glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(180px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-1 {
+    width: 700px; height: 700px;
+    background: var(--accent);
+    opacity: 0.04;
+    top: -300px; right: -200px;
+  }
+  .glow-2 {
+    width: 500px; height: 500px;
+    background: #6b3fa0;
+    opacity: 0.03;
+    bottom: -200px; left: -150px;
+  }
+
+  /* ── Layout ── */
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── Nav ── */
+  nav {
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+  .nav-brand span { color: var(--accent); }
+  .nav-status {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 10vh 0 8vh;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .hero-label::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(3.2rem, 8vw, 6.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent-soft);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    font-weight: 300;
+    color: var(--text-dim);
+    max-width: 560px;
+    line-height: 1.65;
+    margin-bottom: 3rem;
+  }
+
+  .hero-cta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.85rem 2rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary:hover {
+    background: #c4443a;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px var(--accent-glow);
+  }
+
+  .btn-ghost {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 0.85rem 2rem;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-ghost:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+
+  /* ── Etymology ── */
+  .etymology {
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .ety-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 600px) {
+    .ety-grid { grid-template-columns: 1fr; gap: 1rem; }
+  }
+
+  .ety-term {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--accent-soft);
+    padding-top: 0.2rem;
+  }
+  .ety-def {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .ety-def strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── Sections ── */
+  section {
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  section:last-of-type { border-bottom: none; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  h2 em { font-style: italic; color: var(--accent-soft); }
+
+  .section-text {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 620px;
+  }
+
+  /* ── Topic Cards ── */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .topic-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.25s ease;
+  }
+  .topic-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .topic-card h3 {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+  .topic-card p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+  .topic-num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+
+  /* ── About ── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 600px) {
+    .about-grid { grid-template-columns: 1fr; }
+  }
+  .about-item {
+    padding: 1.25rem 0;
+  }
+  .about-item h4 {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .about-item p {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+  .about-item a {
+    color: var(--accent-soft);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  .about-item a:hover { border-bottom-color: var(--accent-soft); }
+
+  /* ── Footer ── */
+  footer {
+    padding: 3rem 0;
+    text-align: center;
+  }
+  .footer-text {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+  .footer-text a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .footer-text a:hover { color: var(--accent-soft); }
+
+  /* ── Animations ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal.d1 { transition-delay: 0.05s; }
+  .reveal.d2 { transition-delay: 0.1s; }
+  .reveal.d3 { transition-delay: 0.15s; }
+  .reveal.d4 { transition-delay: 0.2s; }
+  .reveal.d5 { transition-delay: 0.25s; }
+  .reveal.d6 { transition-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow glow-1"></div>
+<div class="bg-glow glow-2"></div>
+<div class="bg-grain"></div>
+
+<div class="container">
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-brand"><span>&gt;</span> riskcast.ai</div>
+    <div class="nav-status">coming soon</div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-label reveal d1">Podcast</div>
+    <h1 class="reveal d2">Risk<em>Cast</em></h1>
+    <p class="hero-subtitle reveal d3">A podcast about building AI systems that actually run your business. Not theory. Not hype. What happens when you give autonomous agents the keys — and what breaks when you do.</p>
+    <div class="hero-cta reveal d4">
+      <a href="#notify" class="btn-primary">Get notified at launch</a>
+      <a href="#about" class="btn-ghost">What is this?</a>
+    </div>
+  </header>
+
+  <!-- Etymology -->
+  <div class="etymology">
+    <div class="ety-grid reveal">
+      <div class="ety-term">risk, n.</div>
+      <div class="ety-def">
+        <strong>A risk of lobsters</strong> — the collective noun for a group of lobsters. Also: the defining condition of building AI infrastructure in public. Every decision is a bet. Every deploy is exposure. The system either works while you sleep or fails while you sleep. That's the risk.
+      </div>
+    </div>
+  </div>
+
+  <!-- What -->
+  <section id="about">
+    <div class="section-label reveal">What this is</div>
+    <h2 class="reveal">Real conversations about<br><em>operational AI</em></h2>
+    <p class="section-text reveal">RiskCast documents what it actually looks like to build and run a self-hosted, multi-agent AI system called OpenClaw — from the inside. Agent architecture, security trade-offs, silent failures at 3am, the economics of local vs. cloud models, and the uncomfortable gap between what AI demos promise and what production AI delivers.</p>
+  </section>
+
+  <!-- Topics -->
+  <section>
+    <div class="section-label reveal">Topics we dig into</div>
+    <h2 class="reveal">Not another <em>AI hype</em> show</h2>
+    <div class="topics-grid">
+      <div class="topic-card reveal d1">
+        <span class="topic-num">01</span>
+        <h3>Agent Architecture</h3>
+        <p>Multi-agent systems, permission models, file-based handoffs, and why your orchestrator is the only agent that should ever send.</p>
+      </div>
+      <div class="topic-card reveal d2">
+        <span class="topic-num">02</span>
+        <h3>Silent Failures</h3>
+        <p>The cron job that stopped running three weeks ago. The monitor that monitored nothing. Observability as survival.</p>
+      </div>
+      <div class="topic-card reveal d3">
+        <span class="topic-num">03</span>
+        <h3>Security by Default</h3>
+        <p>Prompt injection defense, least-privilege agents, human-in-the-loop gates, and why "do nothing on error" is the only sane default.</p>
+      </div>
+      <div class="topic-card reveal d4">
+        <span class="topic-num">04</span>
+        <h3>Building in Public</h3>
+        <p>What you learn when the system is live and the stakes are real. Revenue on the line, not just GitHub stars.</p>
+      </div>
+      <div class="topic-card reveal d5">
+        <span class="topic-num">05</span>
+        <h3>Model Economics</h3>
+        <p>When to use Sonnet vs. local Qwen. API cost control. Cross-provider fallbacks. Right model for the right task.</p>
+      </div>
+      <div class="topic-card reveal d6">
+        <span class="topic-num">06</span>
+        <h3>Self-Hosted Everything</h3>
+        <p>Mac Minis in a closet. Tailscale over the WAN. Ollama for local inference. Owning your stack vs. renting it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section>
+    <div class="section-label reveal">Who</div>
+    <h2 class="reveal">From the <em>machine room</em></h2>
+    <div class="about-grid">
+      <div class="about-item reveal d1">
+        <h4>Host</h4>
+        <p>Stefan Friend — builder, product manager, and the person whose business actually runs on the AI system he's talking about.</p>
+      </div>
+      <div class="about-item reveal d2">
+        <h4>The System</h4>
+        <p><a href="https://openclaw.ai" target="_blank" rel="noopener">OpenClaw</a> — a self-hosted, multi-agent AI assistant running on two Mac Minis at Tabbris Innovation Center in Charlotte, NC.</p>
+      </div>
+      <div class="about-item reveal d3">
+        <h4>Community</h4>
+        <p>Born out of the <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris</a> coworking space and Charlotte's growing AI builder community.</p>
+      </div>
+      <div class="about-item reveal d4">
+        <h4>Format</h4>
+        <p>Conversations, build logs, and the occasional post-mortem. Episodes drop when there's something worth saying — not on a content calendar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notify -->
+  <section id="notify" style="text-align: center; padding: 6rem 0;">
+    <div class="section-label reveal" style="display: inline-block;">Subscribe</div>
+    <h2 class="reveal" style="margin-top: 1rem;">Get notified<br><em>when we launch</em></h2>
+    <p class="section-text reveal" style="margin: 1.5rem auto 2.5rem; text-align: center;">No spam. Just a single email when the first episode drops.</p>
+    <!-- 
+      TODO: Replace this with a Buttondown or ConvertKit embed.
+      For now, this is a mailto link as a placeholder.
+    -->
+    <a href="mailto:hello@riskcast.ai?subject=Notify%20me%20when%20RiskCast%20launches" class="btn-primary reveal" style="font-size: 0.9rem; padding: 1rem 2.5rem;">hello@riskcast.ai</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p class="footer-text">
+      &copy; 2026 RiskCast &middot; A <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris</a> production &middot; Charlotte, NC
+    </p>
+  </footer>
+
+</div>
+
+<script>
+(function() {
+  // Reveal on scroll + initial viewport
+  var els = document.querySelectorAll('.reveal');
+  function check() {
+    var trigger = window.innerHeight * 0.88;
+    for (var i = 0; i < els.length; i++) {
+      if (els[i].getBoundingClientRect().top < trigger) {
+        els[i].classList.add('visible');
+      }
+    }
+  }
+  window.addEventListener('scroll', check);
+  window.addEventListener('resize', check);
+  // Fire on load
+  check();
+  // Fire again after fonts load to catch any reflow
+  setTimeout(check, 200);
+})();
+</script>
+</body>
+</html>
