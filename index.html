@@ -377,6 +377,40 @@
   .reveal.d4 { transition-delay: 0.2s; }
   .reveal.d5 { transition-delay: 0.25s; }
   .reveal.d6 { transition-delay: 0.3s; }
+
+  /* ── Notify Form ── */
+  .notify-form {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .notify-input {
+    flex: 1 1 240px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .notify-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .notify-input::placeholder {
+    color: var(--text-muted);
+  }
+  @media (max-width: 480px) {
+    .notify-form { flex-direction: column; }
+    .notify-input { flex: none; width: 100%; }
+    .notify-form .btn-primary { width: 100%; text-align: center; }
+  }
 </style>
 </head>
 <body>
@@ -488,11 +522,17 @@
     <div class="section-label reveal" style="display: inline-block;">Subscribe</div>
     <h2 class="reveal" style="margin-top: 1rem;">Get notified<br><em>when we launch</em></h2>
     <p class="section-text reveal" style="margin: 1.5rem auto 2.5rem; text-align: center;">No spam. Just a single email when the first episode drops.</p>
-    <!-- 
-      TODO: Replace this with a Buttondown or ConvertKit embed.
-      For now, this is a mailto link as a placeholder.
-    -->
-    <a href="mailto:hello@riskcast.ai?subject=Notify%20me%20when%20RiskCast%20launches" class="btn-primary reveal" style="font-size: 0.9rem; padding: 1rem 2.5rem;">hello@riskcast.ai</a>
+    <form
+      action="https://buttondown.com/api/emails/embed-subscribe/riskcast"
+      method="post"
+      target="popupwindow"
+      class="notify-form reveal"
+    >
+      <input type="email" name="email" class="notify-input" placeholder="you@example.com" required>
+      <input type="hidden" name="embed" value="1">
+      <input type="hidden" name="tag" value="riskcast-launch">
+      <button type="submit" class="btn-primary">Subscribe</button>
+    </form>
   </section>
 
   <!-- Footer -->
