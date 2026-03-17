@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Changelog — RiskCast</title>
+<meta name="description" content="What actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed.">
+<meta property="og:title" content="RiskCast Changelog">
+<meta property="og:description" content="The build log for OpenClaw and RiskCast. Every entry traces back to a real session, a real commit, or a real failure.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://riskcast.ai/changelog">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a0d;
+    --bg-card: #13121a;
+    --bg-elevated: #1c1a26;
+    --text: #ece8e1;
+    --text-dim: #8a8494;
+    --text-muted: #5c5768;
+    --accent: #d94f3f;
+    --accent-glow: rgba(217, 79, 63, 0.15);
+    --accent-soft: #e8786b;
+    --border: #2a2636;
+    --border-subtle: #1f1c28;
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'Outfit', sans-serif;
+    --font-mono: 'DM Mono', 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ── Background ── */
+  .bg-grain {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .bg-glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(180px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-1 {
+    width: 700px; height: 700px;
+    background: var(--accent);
+    opacity: 0.04;
+    top: -300px; right: -200px;
+  }
+  .glow-2 {
+    width: 500px; height: 500px;
+    background: #6b3fa0;
+    opacity: 0.03;
+    bottom: -200px; left: -150px;
+  }
+
+  /* ── Layout ── */
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── Nav ── */
+  nav {
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .nav-brand:hover { color: var(--text); }
+  .nav-brand span { color: var(--accent); }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .nav-link {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s ease;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--accent-soft); }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 8vh 0 5vh;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .hero-label::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent-soft);
+  }
+
+  .hero-text {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 620px;
+    margin-bottom: 1rem;
+  }
+  .hero-text a {
+    color: var(--accent-soft);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  .hero-text a:hover { border-bottom-color: var(--accent-soft); }
+
+  /* ── Changelog Entries ── */
+  .changelog {
+    padding: 3rem 0 5rem;
+  }
+
+  .entry {
+    padding: 3rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .entry:last-child { border-bottom: none; }
+
+  .entry-date {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--accent-soft);
+    letter-spacing: 0.04em;
+    margin-bottom: 1.5rem;
+  }
+
+  .entry-group {
+    margin-bottom: 1.5rem;
+  }
+  .entry-group:last-child { margin-bottom: 0; }
+
+  .entry-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .entry-label.added { color: #5cb885; }
+  .entry-label.changed { color: #d4a843; }
+  .entry-label.fixed { color: #5b9bd5; }
+  .entry-label.known { color: var(--text-muted); }
+
+  .entry-list {
+    list-style: none;
+    padding: 0;
+  }
+  .entry-list li {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+    padding: 0.25rem 0 0.25rem 1.2rem;
+    position: relative;
+  }
+  .entry-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .entry-list li strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .entry-list li code {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--accent-soft);
+    background: var(--bg-card);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  .entry-list li a {
+    color: var(--accent-soft);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+  .entry-list li a:hover { border-bottom-color: var(--accent-soft); }
+
+  /* ── Footer ── */
+  footer {
+    padding: 3rem 0;
+    text-align: center;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .footer-text {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+  .footer-text a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .footer-text a:hover { color: var(--accent-soft); }
+
+  /* ── Animations ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal.d1 { transition-delay: 0.05s; }
+  .reveal.d2 { transition-delay: 0.1s; }
+  .reveal.d3 { transition-delay: 0.15s; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow glow-1"></div>
+<div class="bg-glow glow-2"></div>
+<div class="bg-grain"></div>
+
+<div class="container">
+
+  <!-- Nav -->
+  <nav>
+    <a href="/" class="nav-brand"><span>&gt;</span> riskcast.ai</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">home</a>
+      <a href="/changelog" class="nav-link active">changelog</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-label reveal d1">Build Log</div>
+    <h1 class="reveal d2">Change<em>log</em></h1>
+    <p class="hero-text reveal d3"><strong>This isn't a changelog for a SaaS product. It's a build log.</strong></p>
+    <p class="hero-text reveal d3">RiskCast exists because we're building the thing we're talking about. <a href="https://openclaw.ai" target="_blank" rel="noopener">OpenClaw</a> is a self-hosted, multi-agent AI system that runs real business operations — email triage, event inquiry responses, SEO content, meeting digests — across two Mac Minis at <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris Innovation Center</a> in Charlotte, NC.</p>
+    <p class="hero-text reveal d3">This page documents what actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed. Every entry traces back to a real session, a real commit, or a real failure.</p>
+  </header>
+
+  <!-- Changelog -->
+  <div class="changelog">
+
+    <!-- 2026-03-16 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-16</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li>Deployed sender-based pre-filter for email classifier — config-driven blocklist/whitelist in <code>email-filter-rules.json</code> to stop spam from being surfaced as leads</li>
+          <li>Reclassified stale queue items (ContentStudio, pdfFiller, DoorDash, Spectrum, etc.) polluting Slack channels</li>
+          <li>Added urgency cap to prevent junk mail from ever reaching <code>high</code> classification</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label known">Known Issues</div>
+        <ul class="entry-list">
+          <li><code>gmail-poll.sh</code> header parser still produces inconsistent list vs. dict format</li>
+          <li>Classifier accuracy remains a work-in-progress — sender-based rules help but LLM classification still needs tuning</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-03-11 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-11</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Presented OpenClaw at <strong>Community Night</strong> at Tabbris — first public demo of the system</li>
+          <li>Built interactive HTML slide deck covering architecture, security model, pipeline flow, and lessons learned</li>
+          <li>Deck reflects live system state: Gemini 3.1 Pro as primary, Qwen local fallback, four agents across two machines</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-03-09 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-09</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Weekly review system</strong> — first proof-of-concept review doc (W10) pulling from Granola meetings, Slack, and Gmail</li>
+          <li>Created <code>#sf_dashboard</code> private Slack channel as universal capture surface for Claude sessions and Alfred digests</li>
+          <li>Session capture pattern: every meaningful Claude session ends with a tagged post (<code>[BofA]</code>, <code>[Tabbris]</code>, <code>[OpenClaw]</code>, <code>[Personal]</code>)</li>
+          <li>Cowork scheduled task designed for Thursday morning reviews (before Olga and Heath 1:1s)</li>
+          <li>Google Drive folder architecture: Weekly Reviews, Granola Sync, Tracker, Projects</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Switched Alfred's primary model from Claude Sonnet to <strong>Gemini 2.5 Flash</strong> as temporary bridge while Anthropic API access is sorted between business and personal accounts</li>
+          <li>Architecture decision: Claude Projects are workspaces, not systems of record — aggregation happens via shared surfaces (Slack, Drive)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-03-05 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-05</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Granola integration</strong> — two-mode architecture deployed: Mode 1: Alfred reads meeting TLDRs from <code>#sf_granola_notes</code> for daily digests. Mode 2: Deep-dive prep via Granola MCP in Claude.ai sessions (browser-OAuth only, not available headlessly)</li>
+          <li>Alfred's Slack channel allowlist expanded to include <code>#sf_granola_notes</code> and <code>#sf_dashboard</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-03-03 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-03</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Upgraded to <strong>OpenClaw v2026.3.2</strong>: native Ollama memory embedding support, <code>openclaw config validate</code> command, Slack Socket Mode fails fast on non-recoverable auth errors, Slack thread context injection limited to first turn, WhatsApp self-message detection, prompt injection hardening, heartbeat hot-reload, config backup permissions hardened to owner-only, cron session reaper fix</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-03-02 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-02</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Friday marketing agent</strong> content engine seeded — content briefs, templates, content calendar, blog categories created. 4 blog categories published to Webflow CMS, 5 content briefs queued, 1 full draft in review. SEO audit completed for tabbris.com. All 6 page SEO title tags and meta descriptions pushed via Webflow API. 8 template blog posts archived</li>
+          <li>Friday's <strong>Scout &rarr; Writer &rarr; Publisher</strong> pipeline designed and partially wired</li>
+          <li>Webflow Designer MCP quirks documented: <code>set_text</code> works on Paragraph parents not String children; single-action calls only</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Updated Tabbris site testimonials — replaced placeholder content with real Google reviews (7 unique reviewers)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-25 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-25</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li>System audit identified <strong>three competing orchestration planes</strong> (OpenClaw cron, system cron, heartbeat docs) — root cause of most silent failures</li>
+          <li><code>ready-for-review.json</code> found stale since Feb 4 — Drafting agent confirmed idle due to broken upstream handoff</li>
+          <li>Shadow inbox accumulating 205 <code>pending_review</code> items with no surfacing mechanism</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><code>surface-to-slack.sh</code> bypass script — skips LLM drafting agent to get emails surfaced when pipeline is down</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-24 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-24</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li><strong>Watchdog spam eliminated</strong> — added state-based deduplication (only alerts on status transitions, not every check cycle)</li>
+          <li>Alert consolidation: retired WhatsApp health alerts, all system alerts now route to Slack</li>
+          <li>Morning daily digest now always posts even when healthy — eliminates silence ambiguity</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Evening check-in script (6 PM weekdays)</li>
+          <li>Interactive workflow visualizations mapping all 7 system pipelines</li>
+          <li>Friday Mac Mini audit and fix — rebuilt cron jobs, LaunchAgent, Slack channel bindings</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-23 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-23</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Passive monitoring system deployed</strong> — five scripts on system crontab: <code>watchdog.sh</code> (every 5 min), <code>memory-guardian.sh</code> (every 2 min), <code>daily-digest.sh</code> (8 AM weekdays), <code>security-audit.sh</code> (6 AM Sundays), <code>canary-test.sh</code> (7 AM Mondays)</li>
+          <li>Remote SSH access via Termius + Tailscale fully configured (ed25519 key auth)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-20 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-20</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Identified and analyzed $52 API cost spike from 10.5M cache write tokens during extended dev session</li>
+          <li>Designed memory architecture refactor: monolithic workspace files &rarr; lean Memory.md + on-demand Skills folder</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-19 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-19</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Alfred connected to Slack</strong> — joined three core Tabbris channels: <code>#ta_events-control</code> (event inquiry pipeline), <code>#ta_mission-control</code> (membership and general ops), <code>#tz_marketing</code> (Friday's marketing channel)</li>
+          <li>HEARTBEAT.md updated with Event Inquiry Playbook v1.3 routing</li>
+          <li><strong>Cross-provider fallback</strong> designed: Qwen3 via Ollama as local fallback when cloud APIs rate-limit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-18 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-18</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Upgraded Monitor agent from Qwen 2.5 7B to <strong>Qwen3-8B</strong></li>
+          <li>Identified $90 unexpected API charges: Drafting agent's 10-min cron firing with 180k-token context loads, failing on sandbox mount, repeating — 72.5% of costs from cache writes</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-17 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-17</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Remote access working</strong>: Tailscale + Termius from iPhone to Mac Mini</li>
+          <li>Mobile workflow: Tailscale &rarr; Termius &rarr; SSH &rarr; <code>openclaw status</code> from anywhere</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-13 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-13</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Completed Mac Mini migration from 16GB M4 to <strong>32GB M4</strong> using Migration Assistant</li>
+          <li>Old 16GB Mac Mini repurposed: AV/lights for event space + dedicated Friday marketing agent</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Tabbris SEO automation feasibility research: Webflow CMS API mapped, realistic cost $28&ndash;59/month, 8-week plan</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-11 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-11</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>OpenClaw System Definition document</strong> — formal architecture spec covering three-agent roles, infrastructure, channels, known issues, and debt</li>
+          <li>Custom project instructions for the OpenClaw Claude project</li>
+          <li>Updated Tabbris privacy policy on Webflow with SMS/text messaging terms</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-10 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-10</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Decided on Qwen3 14B as Monitor upgrade path (thinking mode OFF for fast classification)</li>
+          <li>Designed hub-and-spoke sub-agent architecture: dedicated agents per business unit with Alfred as orchestrator</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-09 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-09</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Gmail integration architecture for info@tabbris.com — OAuth setup, sanitization layer, data flow, security model</li>
+          <li>Email pipeline: Monitor polls Gmail &rarr; classifies &rarr; handoff &rarr; Drafting composes &rarr; Alfred reviews &rarr; sends</li>
+          <li>Google Drive sync tiers: Tier 1 (pricing, venue, FAQ) daily sync; Tier 2 on-demand; Tier 3 (financials) excluded</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-08 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-08</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Alfred's first autonomous <strong>UCC content production</strong> via WhatsApp — TikTok scripts (10), LinkedIn templates (5), content calendar CSV, daily guide, visual asset batches</li>
+          <li>UCC Master Content Calendar with weekly initiatives and platform rotation</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Refined UCC image generation prompts: mandatory realism checklist, removed third-party brand references</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-07 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-07</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Switched memory embeddings from OpenAI to <strong>local Ollama nomic-embed-text</strong> (768 dimensions) — eliminated external API dependency</li>
+          <li>STEFANFRIENDCONTEXT.md — comprehensive personal context document for Alfred's workspace</li>
+          <li>Restored HEARTBEAT.md with three-section structure and 30m cadence</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li><strong>Alfred's persistent memory loss</strong>: OpenAI embedding quota exhaustion (429) silently breaking <code>memory_search</code></li>
+          <li>Identified missing daily memory files (Feb 3&ndash;7 gap) from HEARTBEAT.md overwrite</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-06 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-06</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>launchd plist</strong> for OpenClaw gateway — RunAtLoad, KeepAlive, auto-restart on crash</li>
+          <li>Health check script (<code>healthcheck.sh</code>) — monitors gateway, WhatsApp bridge, log freshness</li>
+          <li>Disabled Mac Mini sleep, enabled Wake on LAN, enabled auto-login for unattended boot</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li><strong>OpenClaw survives reboots</strong>: boot &rarr; auto-login &rarr; Tailscale &rarr; Ollama &rarr; gateway &rarr; WhatsApp &rarr; Alfred alive</li>
+          <li>Decoupled Alfred from TUI — gateway handles routing independently</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li>Docker connectivity error — auto-start + safe failure defaults</li>
+          <li>Filesystem cleanup post-Migration-Assistant</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-05 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-05</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Three-agent architecture fully configured</strong>: Alfred (main, Claude Sonnet, unsandboxed, full send permissions), Monitor (Qwen 7B via Ollama, sandboxed, read-only), Drafting (Claude Sonnet, sandboxed, no send)</li>
+          <li>WhatsApp channel bindings: Stefan &rarr; main agent, wife &rarr; monitor agent</li>
+          <li><code>selfChatMode: true</code> — WhatsApp self-chat as primary command interface</li>
+          <li><strong>File-based handoff pipeline</strong>: <code>needs-draft.json</code> &rarr; <code>ready-for-review.json</code></li>
+          <li>Handoff JSON schema defined</li>
+          <li>Drafting agent cron (every 10 min) and Alfred heartbeat (every 30 min)</li>
+          <li>Tabbris event inquiry playbook — classification tiers, qualifying questions, upsell triggers, objection handling</li>
+          <li>Security hardening: <code>web_fetch</code> and <code>browser</code> denied for Monitor</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li>Alfred not responding via WhatsApp: workspace files contained sandbox references causing self-restriction</li>
+          <li>Token burn from Opus fallback: default model was Opus; fixed to Sonnet</li>
+          <li>Wife's WhatsApp binding: was routing to main agent, corrected to monitor</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-04 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-04</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Separate Anthropic API key created for OpenClaw (decoupled from Claude subscription)</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li>HTTP 429 rate limit errors — oversized system prompts as root cause; gateway hanging 10+ min on retry</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-02-02 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-02-02</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>OpenClaw gateway first running</strong> on Mac Mini M4 (16GB)</li>
+          <li>Ollama installed with Qwen 2.5:7b for local inference</li>
+          <li>WhatsApp channel paired and linked</li>
+          <li>Tailscale configured for remote access</li>
+          <li>Three-agent architecture concept: Monitor (observe) &rarr; Drafting (compose) &rarr; Alfred (review + send)</li>
+          <li>Channel latency tiers: WhatsApp self-chat (real-time), info@ (5&ndash;10m), wife's WhatsApp (30m), personal Gmail (1&ndash;2h)</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p class="footer-text">
+      &copy; 2026 RiskCast &middot; A <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris</a> production &middot; Charlotte, NC
+    </p>
+  </footer>
+
+</div>
+
+<script>
+(function() {
+  var els = document.querySelectorAll('.reveal');
+  function check() {
+    var trigger = window.innerHeight * 0.88;
+    for (var i = 0; i < els.length; i++) {
+      if (els[i].getBoundingClientRect().top < trigger) {
+        els[i].classList.add('visible');
+      }
+    }
+  }
+  window.addEventListener('scroll', check);
+  window.addEventListener('resize', check);
+  check();
+  setTimeout(check, 200);
+})();
+</script>
+</body>
+</html>
