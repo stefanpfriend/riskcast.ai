@@ -324,12 +324,12 @@
     <div class="entry reveal">
       <div class="entry-date">2026-03-18</div>
       <div class="entry-group">
-        <div class="entry-label added">Added</div>
+        <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li><strong>RiskCast.ai launch prep</strong> — Buttondown email signup form replacing mailto placeholder, with <code>riskcast-launch</code> tag for list segmentation</li>
-          <li>Favicon and Apple touch icon added (lobster-mic logo)</li>
-          <li><strong>Changelog page</strong> at <code>/changelog</code> — full build log from Feb 2 onward, color-coded entry labels, matching site design</li>
-          <li>Navigation updated — changelog link added to homepage nav and cross-linked between pages</li>
+          <li><strong>Drafting agent pipeline restored</strong> — a March 11 Claude session had created <code>surface-to-slack.sh</code> as a "pipeline unblock" that bypassed the LLM drafting agent entirely, posting raw notifications to Slack. The script was added to cron but never removed or documented, silently starving the drafter of work</li>
+          <li>Root cause: <code>surface-to-slack.sh</code> grabbed pending items before <code>drafting-queue.sh</code> could process them. All three OpenClaw cron jobs in <code>jobs.json</code> were also disabled</li>
+          <li>Restored <code>drafting-queue.sh</code> to system cron (1 min after classifier), shifted <code>surface-to-slack.sh</code> to 5 min later as a fallback</li>
+          <li>Rewrote <code>surface-to-slack.sh</code> to prefer drafted items (includes draft text in Slack posts), with a 10-min stale fallback for items drafting missed</li>
         </ul>
       </div>
     </div>
