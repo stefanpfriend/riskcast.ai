@@ -320,6 +320,39 @@
   <!-- Changelog -->
   <div class="changelog">
 
+    <!-- 2026-03-20 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-20</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Upgraded to <strong>OpenClaw v2026.3.13</strong> (from v2026.3.8) &mdash; 5 patch releases of accumulated fixes including session pruning, model failover improvements, and plugin lifecycle changes</li>
+          <li><strong>Primary model restored to Anthropic Claude Sonnet 4.6</strong> for Alfred and Drafting agents &mdash; Gemini 2.5 Flash demoted to first fallback, Qwen local as second. Cross-provider fallback chain now: Sonnet &rarr; Gemini Flash &rarr; Qwen (three providers, no single-vendor outage takes down the system)</li>
+          <li>Enabled <strong>sandbox mode <code>non-main</code></strong> for Monitor and Drafting agents &mdash; OS-level process isolation in addition to the existing tool deny-lists. Main agent (Alfred) remains unsandboxed for full operational access</li>
+          <li>Removed per-agent <code>sandbox: off</code> overrides that were silently defeating the global sandbox policy</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Lobster workflow engine enabled</strong> &mdash; OpenClaw's native deterministic pipeline runtime, replacing the need for multi-script shell orchestration. Typed JSON pipelines with approval gates and resume tokens</li>
+          <li><strong><code>llm-task</code> plugin enabled</strong> &mdash; allows Lobster workflows to embed LLM classification/drafting steps inside otherwise deterministic pipelines (e.g., Qwen classifies email within a Lobster workflow without the LLM deciding what step comes next)</li>
+          <li>First Lobster workflow written: <code>email-triage.lobster</code> &mdash; 5-step pipeline: fetch from Gmail &rarr; classify via Qwen local &rarr; format/route &rarr; notify <code>#ta_events-control</code> &rarr; notify <code>#ta_mission-control</code>. Approval gates on both Slack notification steps. Can be triggered on-demand via conversation, on cron, or via system event &mdash; not cron-only like the shell scripts</li>
+          <li>Created <code>~/.openclaw/workspace/workflows/</code> directory for Lobster workflow files</li>
+          <li>Ran <code>openclaw doctor</code> and <code>openclaw security audit --deep</code> &mdash; baselined system health post-upgrade. 0 critical findings</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label known">Known Issues</div>
+        <ul class="entry-list">
+          <li><strong>WhatsApp unlinked</strong> &mdash; needs QR re-pair on the Mac Mini (<code>openclaw channels login --channel whatsapp</code>). Gateway health monitor restart loop confirmed as symptom, not root cause</li>
+          <li>Existing sessions still cached on Gemini Flash from pre-restart &mdash; new turns will hit Sonnet, old sessions rotate naturally</li>
+          <li>Lobster workflow is written but not yet battle-tested against live email volume &mdash; shell script crons remain the production pipeline until validated</li>
+          <li>Security audit flags Slack group allowlist as potential multi-user heuristic &mdash; expected and acceptable for the personal-assistant trust model</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- 2026-03-18 -->
     <div class="entry reveal">
       <div class="entry-date">2026-03-18</div>
