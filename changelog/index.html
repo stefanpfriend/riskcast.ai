@@ -320,6 +320,47 @@
   <!-- Changelog -->
   <div class="changelog">
 
+    <!-- 2026-03-24 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-24</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li><strong>Email pipeline break #4 &mdash; gog query returning null</strong>. <code>gog gmail messages search "in:inbox is:unread"</code> intermittently returns <code>{"messages": null}</code> in gog v0.9.0. Python parser silently swallowed the error via <code>2>/dev/null</code>, logging "No unread messages" while real emails sat untouched. Fix: changed query to <code>"label:inbox is:unread"</code> (works reliably), added null-safety to every <code>.get()</code> call</li>
+          <li><strong>Classifier priority ordering</strong> &mdash; emails mentioning "payment" in the body (e.g., a customer asking "do you accept credit card payments?") were classified as <code>PAYMENT_NOTIFICATION</code> before the event check could fire. Reordered: <code>EVENT_INQUIRY</code> and strong event signals now evaluate before <code>PAYMENT_NOTIFICATION</code>. Payment keywords restricted to subject and sender fields only, not body text</li>
+          <li><strong>Flexspace.ai classification dead-end</strong> &mdash; reclassify rule routed to <code>OPS_ALERT</code>, but no channel mapping existed in <code>surface-to-slack.sh</code>. Emails would classify, then surface to the wrong channel. Changed to <code>IGNORE_ARCHIVE</code> (auto-archive). Added <code>OPS_ALERT</code> to channel map as safety net</li>
+          <li>Resolved <code>gmail-poll.sh</code> header parser inconsistency flagged in March 16 known issues &mdash; all <code>.get()</code> calls now use <code>(data.get('key') or {})</code> pattern to handle both <code>null</code> and missing keys</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Canary tracking for gmail-poll.sh</strong> &mdash; tracks consecutive "no messages" polls. After 72 consecutive empties (~12 hours), logs a <code>CANARY ALERT</code> with last-success timestamp. State persisted in <code>gmail-poll-canary.json</code>. This is the early-warning system the pipeline never had &mdash; instead of discovering silence days later, the canary flags starvation within half a day</li>
+          <li><strong>Retry with backoff on gog calls</strong> &mdash; 3 attempts with 5-second delay between. The gog null-response bug is intermittent (sometimes works, sometimes doesn't), so a single retry often recovers. Logs each attempt with gog exit code and output preview</li>
+          <li><strong><code>pipeline-selftest.sh</code></strong> &mdash; boot-time validation script checking 7 critical components: gog CLI + auth, handoff directory permissions, JSON file integrity, Slack bot token + API auth, cron script executability, keyring password. Returns non-zero on any critical failure. Designed for <code>@reboot</code> cron</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Replaced all <code>2>/dev/null</code> in <code>gmail-poll.sh</code> with <code>2>> "$LOG"</code> plus contextual error messages. Every Python inline block now logs its failure reason and the input that caused it. The pipeline can no longer fail silently</li>
+          <li>Purged 42 stale items from <code>needs-draft.json</code> queue (40 surfaced, 2 skipped_junk) that would never be reprocessed &mdash; dead weight from previous pipeline runs</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-03-23 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-03-23</div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li><strong>RiskCast production skill v2.0</strong> &mdash; rewrote <code>riskcast-produce</code> with standardized four-stage workflow: intake (raw audio drop) &rarr; transcription (whisper.cpp) &rarr; handoff notes (segment-by-segment edit template) &rarr; editor package. Established naming conventions and directory structure under <code>~/.openclaw/riskcast/</code></li>
+          <li>Documented transcription blockers: cron PATH issues with ffmpeg, whisper.cpp model installation requirements. Added Slack notification templates for production status updates</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- 2026-03-20 -->
     <div class="entry reveal">
       <div class="entry-date">2026-03-20</div>
@@ -379,7 +420,7 @@
       <div class="entry-group">
         <div class="entry-label known">Known Issues</div>
         <ul class="entry-list">
-          <li><code>gmail-poll.sh</code> header parser still produces inconsistent list vs. dict format</li>
+          <li><s><code>gmail-poll.sh</code> header parser still produces inconsistent list vs. dict format</s> &mdash; resolved 2026-03-24</li>
           <li>Classifier accuracy remains a work-in-progress — sender-based rules help but LLM classification still needs tuning</li>
         </ul>
       </div>
