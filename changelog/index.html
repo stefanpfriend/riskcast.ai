@@ -313,42 +313,12 @@
     <div class="hero-label reveal d1">Build Log</div>
     <h1 class="reveal d2">Change<em>log</em></h1>
     <p class="hero-text reveal d3"><strong>This isn't a changelog for a SaaS product. It's a build log.</strong></p>
-    <p class="hero-text reveal d3">RiskCast exists because we're building the thing we're talking about. <a href="https://openclaw.ai" target="_blank" rel="noopener">OpenClaw</a> is a self-hosted AI system that runs real business operations — email handling, event inquiry responses, facility ops, meeting digests — on a Mac Mini at <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris Innovation Center</a> in Charlotte, NC.</p>
+    <p class="hero-text reveal d3">RiskCast exists because we're building the thing we're talking about. <a href="https://openclaw.ai" target="_blank" rel="noopener">OpenClaw</a> is a self-hosted, multi-agent AI system that runs real business operations — email triage, event inquiry responses, SEO content, meeting digests — across two Mac Minis at <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris Innovation Center</a> in Charlotte, NC.</p>
     <p class="hero-text reveal d3">This page documents what actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed. Every entry traces back to a real session, a real commit, or a real failure.</p>
   </header>
 
   <!-- Changelog -->
   <div class="changelog">
-
-    <!-- 2026-04-03 -->
-    <div class="entry reveal">
-      <div class="entry-date">2026-04-03</div>
-      <div class="entry-group">
-        <div class="entry-label changed">Changed</div>
-        <ul class="entry-list">
-          <li><strong>Collapsed from three agents to one.</strong> Two months of running a three-agent pipeline &mdash; Monitor polling Gmail, Drafting composing responses, Alfred reviewing and routing &mdash; and the honest answer is: it produced near-zero value. The email pipeline broke more than it worked. When it did work, the latency from poll-to-Slack was long enough that a human checking the inbox would've been faster. The multi-agent architecture was interesting to build, genuinely educational, and ultimately not worth the operational overhead for a small business inbox getting maybe 5&ndash;10 real inquiries a week. So we killed it.</li>
-          <li><strong>Alfred is now a reactive Slack co-pilot</strong>, not an autonomous pipeline orchestrator. He monitors <code>#ta_mission-control</code>, <code>#ta_events-control</code>, and <code>#sf_dashboard</code>. When Storm or Stefan asks a question, he answers. When they ask him to check the inbox, he checks the inbox. When they ask for pricing info, he searches Drive. No more unsupervised cron chains polling Gmail every 10 minutes, classifying emails through an LLM, handing off to a drafting agent, then surfacing to Slack. Just: human asks, Alfred does.</li>
-          <li>Upgraded to <strong>OpenClaw v2026.4.2</strong> (from v2026.3.13). WhatsApp rebundled after the v2026.3.22 unbundling incident. Clean upgrade, no issues.</li>
-          <li><strong>Primary model restored to Anthropic Claude Sonnet 4.6</strong> with Gemini 2.5 Flash as sole fallback. Removed Ollama/Qwen from the fallback chain &mdash; Ollama stays running only for <code>nomic-embed-text</code> memory embeddings.</li>
-          <li><strong>8 cron jobs disabled</strong>: <code>gmail-poll.sh</code>, <code>email-classifier.sh</code>, <code>drafting-queue.sh</code>, <code>surface-to-slack.sh</code>, <code>stefan-gmail-shadow-poll.sh</code>, <code>stefan-shadow-triage.sh</code>, <code>stefan-shadow-surface.sh</code>, <code>main-heartbeat-review.sh</code>. All commented out, not deleted &mdash; rollback is one <code>crontab</code> command.</li>
-          <li>Monitor and Drafting agent workspaces archived. Handoff pipeline files (7 JSON files) archived. Internal OpenClaw cron jobs cleared.</li>
-          <li><strong>Workspace files rewritten</strong>: HEARTBEAT.md now describes a reactive co-pilot role with on-demand Gmail/Drive/Calendar access and a once-daily morning dashboard. ECOSYSTEM.md updated to single-agent architecture. Inquiry pipeline skill rewritten from 130-line autonomous flow to 50-line on-demand workflow. AGENTS.md and TOOLS.md cleaned of inter-agent references.</li>
-        </ul>
-      </div>
-      <div class="entry-group">
-        <div class="entry-label added">Added</div>
-        <ul class="entry-list">
-          <li><strong>Daily dashboard</strong> &mdash; Alfred posts a morning briefing to <code>#sf_dashboard</code> on first heartbeat after 8 AM ET: unread counts for both inboxes, 7-day calendar, unanswered Slack questions from yesterday, system health. 10&ndash;15 lines max. Replaces the noisy per-email surfacing with a single daily snapshot.</li>
-          <li><strong>On-demand email access</strong> via <code>gog</code> skill &mdash; Alfred reads both info@tabbris.com and stefan@tabbris.com directly as callable tools, not through cron-driven pipeline scripts. Same for Drive search and Calendar lookups. The tools were always there; the pipeline was just never wired to use them directly.</li>
-        </ul>
-      </div>
-      <div class="entry-group">
-        <div class="entry-label known">Known Issues</div>
-        <ul class="entry-list">
-          <li>No proactive email monitoring. If nobody asks Alfred to check the inbox, emails sit unread. This is intentional &mdash; the bet is that Storm checks info@ frequently enough, and the daily dashboard catches anything that slips. If emails start getting missed, we'll add a lightweight "flag stale inbox" check to the heartbeat, not rebuild the pipeline.</li>
-        </ul>
-      </div>
-    </div>
 
     <!-- 2026-03-24 -->
     <div class="entry reveal">
