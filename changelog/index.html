@@ -320,6 +320,79 @@
   <!-- Changelog -->
   <div class="changelog">
 
+    <!-- 2026-04-15 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-04-15</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li><strong>Gateway down for eight days</strong> &mdash; silent failure. The host OS revoked trust in the node binary, so every launch was killed at startup with no log output. Rehabilitated the binary. Gateway back up</li>
+          <li>Billing cooldowns from an earlier credit exhaustion lingered after top-up. Cleared</li>
+          <li><strong>Email classifier regression</strong> &mdash; a reclassify rule added a few days earlier was sending one platform&rsquo;s mail to the wrong channel under a tag the Slack surface didn&rsquo;t know how to display. Removed the rule, taught the surface about the additional tags</li>
+          <li>&ldquo;Draft unavailable&rdquo; false negative in Slack surfacing. When Drafting deliberately chose to skip an item, the Slack post made it look like the pipeline had failed. Now shows the agent&rsquo;s reasoning instead</li>
+          <li>Small corruption in one of the handoff files from an earlier in-place edit. Repaired</li>
+          <li>WhatsApp Desktop quitting every afternoon &mdash; auto-update install was on. Disabled</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Subject-pattern filter in the email pre-filter so platform read-receipts auto-archive before they reach the pipeline</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-04-14 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-04-14</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li><strong>Drafting context drift</strong> &mdash; the pricing reference in Drafting&rsquo;s context had drifted from the authoritative event inquiry playbook, producing a quote without a line-item breakdown. Rewrote the reference to match the playbook. Re-sent the corrected draft</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li>Event inquiry playbook added to Drafting&rsquo;s context</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-04-13 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-04-13</div>
+      <div class="entry-group">
+        <div class="entry-label added">Added</div>
+        <ul class="entry-list">
+          <li><strong>Session size monitor</strong> &mdash; hourly check with a Slack alert when any agent session crosses a soft or hard threshold. Alerts auto-clear on reset</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li>Moved compaction to proactive mode so long-running sessions stay trim automatically</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2026-04-10 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-04-10</div>
+      <div class="entry-group">
+        <div class="entry-label fixed">Fixed</div>
+        <ul class="entry-list">
+          <li><strong>Unnecessary spend</strong> &mdash; the Drafting agent was looping on heartbeats without real work. Reset the agent&rsquo;s session</li>
+        </ul>
+      </div>
+      <div class="entry-group">
+        <div class="entry-label changed">Changed</div>
+        <ul class="entry-list">
+          <li><strong>Heartbeat restructure</strong> &mdash; recalibrated cadences across the three agents. Monitor slowed to give its local model headroom. Drafting switched to cron-only &mdash; runs only when there&rsquo;s a pending draft. Alfred kept hourly</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- 2026-04-06 -->
     <div class="entry reveal">
       <div class="entry-date">2026-04-06</div>
