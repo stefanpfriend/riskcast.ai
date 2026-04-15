@@ -399,22 +399,22 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Operational workflows skill</strong> &mdash; Alfred can now process recurring monthly revenue reports from vendors, extract data from email bodies and image attachments (via vision), calculate ownership shares, update the financial model spreadsheet, and post confirmations to Slack. Includes a monthly close checklist to verify all revenue lines are filled</li>
-          <li><strong>Vision pipeline for email attachments</strong> &mdash; download and read image-based reports sent by vendors using Claude&rsquo;s vision capability</li>
-          <li><strong>System version control</strong> &mdash; private GitHub repo for the entire OpenClaw workspace. All three agent workspaces, pipeline scripts, skills, workflows, and a sanitized config template. Enables remote editing from Claude Code mobile</li>
-          <li><strong>Full system audit</strong> &mdash; inventoried the Mac Mini end-to-end: 14,800+ files, 20 cron jobs, 4 local models, 3 running agents across 28 sessions. Mapped everything unversioned into the new repo</li>
+          <li><strong>Operational workflows</strong> &mdash; Alfred can now handle recurring monthly vendor revenue reports end-to-end. Reads the email (including image attachments), calculates ownership splits, updates the financial model, and posts a confirmation to Slack. Includes a month-end checklist so nothing slips through</li>
+          <li><strong>Image reading</strong> &mdash; Alfred can now open and read image-based reports that vendors send as attachments</li>
+          <li><strong>System under version control</strong> &mdash; moved the entire OpenClaw workspace into a private code repository. All three agent workspaces, pipeline scripts, skills, workflows, and a sanitized config template. Anything can now be edited from a phone</li>
+          <li><strong>Full system inventory</strong> &mdash; audited the Mac Mini end-to-end before the move: files, scheduled jobs, local models, running agents and sessions. Everything unversioned got mapped into the new repository</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Email triage pipeline now cross-references operational workflows &mdash; classification feeds directly into what Alfred should <em>do</em> with recurring vendor reports, not just how to tag them</li>
+          <li>Email triage now connects to operational workflows &mdash; classifying an email also tells Alfred what to <em>do</em> with it, not just how to tag it</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li>Caught and redacted a hardcoded Slack token in a setup doc before it hit version control</li>
+          <li>Caught a hardcoded secret in a setup doc before it made it into the repository</li>
         </ul>
       </div>
     </div>
@@ -425,25 +425,25 @@
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li><strong>Email pipeline break #4 &mdash; gog query returning null</strong>. <code>gog gmail messages search "in:inbox is:unread"</code> intermittently returns <code>{"messages": null}</code> in gog v0.9.0. Python parser silently swallowed the error via <code>2>/dev/null</code>, logging "No unread messages" while real emails sat untouched. Fix: changed query to <code>"label:inbox is:unread"</code> (works reliably), added null-safety to every <code>.get()</code> call</li>
-          <li><strong>Classifier priority ordering</strong> &mdash; emails mentioning "payment" in the body (e.g., a customer asking "do you accept credit card payments?") were classified as <code>PAYMENT_NOTIFICATION</code> before the event check could fire. Reordered: <code>EVENT_INQUIRY</code> and strong event signals now evaluate before <code>PAYMENT_NOTIFICATION</code>. Payment keywords restricted to subject and sender fields only, not body text</li>
-          <li><strong>Flexspace.ai classification dead-end</strong> &mdash; reclassify rule routed to <code>OPS_ALERT</code>, but no channel mapping existed in <code>surface-to-slack.sh</code>. Emails would classify, then surface to the wrong channel. Changed to <code>IGNORE_ARCHIVE</code> (auto-archive). Added <code>OPS_ALERT</code> to channel map as safety net</li>
-          <li>Resolved <code>gmail-poll.sh</code> header parser inconsistency flagged in March 16 known issues &mdash; all <code>.get()</code> calls now use <code>(data.get('key') or {})</code> pattern to handle both <code>null</code> and missing keys</li>
+          <li><strong>Silent email pipeline failure</strong> &mdash; the Gmail query was occasionally returning nothing when real messages were waiting. The error was being swallowed and the log said &ldquo;no new mail&rdquo; while the inbox piled up. Replaced the query with a reliable one and added proper error handling everywhere</li>
+          <li><strong>Misrouted event inquiries</strong> &mdash; emails mentioning &ldquo;payment&rdquo; in the body (for example, a customer asking &ldquo;do you accept card payments?&rdquo;) were being tagged as payment receipts instead of event inquiries. Reordered the rules so event signals win, and restricted payment keywords to the subject line</li>
+          <li>One platform&rsquo;s emails were classified into a category with no matching Slack channel &mdash; they&rsquo;d tag correctly and then vanish. Switched to auto-archive, and added a safety-net channel for the orphan category</li>
+          <li>Resolved an email header parsing inconsistency flagged in March 16 known issues</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Canary tracking for gmail-poll.sh</strong> &mdash; tracks consecutive "no messages" polls. After 72 consecutive empties (~12 hours), logs a <code>CANARY ALERT</code> with last-success timestamp. State persisted in <code>gmail-poll-canary.json</code>. This is the early-warning system the pipeline never had &mdash; instead of discovering silence days later, the canary flags starvation within half a day</li>
-          <li><strong>Retry with backoff on gog calls</strong> &mdash; 3 attempts with 5-second delay between. The gog null-response bug is intermittent (sometimes works, sometimes doesn't), so a single retry often recovers. Logs each attempt with gog exit code and output preview</li>
-          <li><strong><code>pipeline-selftest.sh</code></strong> &mdash; boot-time validation script checking 7 critical components: gog CLI + auth, handoff directory permissions, JSON file integrity, Slack bot token + API auth, cron script executability, keyring password. Returns non-zero on any critical failure. Designed for <code>@reboot</code> cron</li>
+          <li><strong>Early-warning canary</strong> on the email poller. If roughly half a day passes with no new mail, the system flags the pipeline as potentially stuck instead of silently waiting &mdash; the monitoring we never had before</li>
+          <li><strong>Auto-retry</strong> on flaky upstream calls. A single transient failure no longer breaks the pipeline</li>
+          <li><strong>Boot-time self-test</strong> &mdash; on restart, the pipeline checks every moving piece before running: credentials, file permissions, Slack connection, scheduled scripts, keyring. Fails fast and loudly if anything is misconfigured</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Replaced all <code>2>/dev/null</code> in <code>gmail-poll.sh</code> with <code>2>> "$LOG"</code> plus contextual error messages. Every Python inline block now logs its failure reason and the input that caused it. The pipeline can no longer fail silently</li>
-          <li>Purged 42 stale items from <code>needs-draft.json</code> queue (40 surfaced, 2 skipped_junk) that would never be reprocessed &mdash; dead weight from previous pipeline runs</li>
+          <li>Every step of the email poller now logs what failed and why. The pipeline can no longer fail silently</li>
+          <li>Purged dead items from the draft queue that would never be reprocessed</li>
         </ul>
       </div>
     </div>
@@ -454,8 +454,8 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li><strong>RiskCast production skill v2.0</strong> &mdash; rewrote <code>riskcast-produce</code> with standardized four-stage workflow: intake (raw audio drop) &rarr; transcription (whisper.cpp) &rarr; handoff notes (segment-by-segment edit template) &rarr; editor package. Established naming conventions and directory structure under <code>~/.openclaw/riskcast/</code></li>
-          <li>Documented transcription blockers: cron PATH issues with ffmpeg, whisper.cpp model installation requirements. Added Slack notification templates for production status updates</li>
+          <li><strong>RiskCast production workflow, second pass</strong> &mdash; rewrote the podcast production routine with a standardized four-stage flow: raw audio in, transcription, edit template, editor package out. Set naming conventions and folder structure</li>
+          <li>Documented the known blockers for transcription setup, and added Slack templates for production status updates</li>
         </ul>
       </div>
     </div>
@@ -466,27 +466,26 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Upgraded to <strong>OpenClaw v2026.3.13</strong> (from v2026.3.8) &mdash; 5 patch releases of accumulated fixes including session pruning, model failover improvements, and plugin lifecycle changes</li>
-          <li><strong>Primary model restored to Anthropic Claude Sonnet 4.6</strong> for Alfred and Drafting agents &mdash; Gemini 2.5 Flash demoted to first fallback, Qwen local as second. Cross-provider fallback chain now: Sonnet &rarr; Gemini Flash &rarr; Qwen (three providers, no single-vendor outage takes down the system)</li>
-          <li>Enabled <strong>sandbox mode <code>non-main</code></strong> for Monitor and Drafting agents &mdash; OS-level process isolation in addition to the existing tool deny-lists. Main agent (Alfred) remains unsandboxed for full operational access</li>
-          <li>Removed per-agent <code>sandbox: off</code> overrides that were silently defeating the global sandbox policy</li>
+          <li>Upgraded OpenClaw to the current release &mdash; five patch releases of accumulated fixes, including better session management and more reliable model failover</li>
+          <li><strong>Primary model restored to Anthropic Claude</strong> for Alfred and the Drafting agent. Gemini became the first fallback, the local model the second. Three providers in the chain &mdash; no single vendor outage takes the system down</li>
+          <li><strong>Sandboxed</strong> the Monitor and Drafting agents at the OS level, on top of existing tool restrictions. Alfred stays open so it can do real operational work</li>
+          <li>Removed per-agent overrides that were quietly defeating the main sandbox policy</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Lobster workflow engine enabled</strong> &mdash; OpenClaw's native deterministic pipeline runtime, replacing the need for multi-script shell orchestration. Typed JSON pipelines with approval gates and resume tokens</li>
-          <li><strong><code>llm-task</code> plugin enabled</strong> &mdash; allows Lobster workflows to embed LLM classification/drafting steps inside otherwise deterministic pipelines (e.g., Qwen classifies email within a Lobster workflow without the LLM deciding what step comes next)</li>
-          <li>First Lobster workflow written: <code>email-triage.lobster</code> &mdash; 5-step pipeline: fetch from Gmail &rarr; classify via Qwen local &rarr; format/route &rarr; notify <code>#ta_events-control</code> &rarr; notify <code>#ta_mission-control</code>. Approval gates on both Slack notification steps. Can be triggered on-demand via conversation, on cron, or via system event &mdash; not cron-only like the shell scripts</li>
-          <li>Created <code>~/.openclaw/workspace/workflows/</code> directory for Lobster workflow files</li>
-          <li><strong>RiskCast podcast production pipeline</strong> &mdash; built <code>riskcast-produce</code> skill for Alfred with four-stage workflow: intake (raw audio drop) &rarr; transcription (whisper.cpp on Apple Silicon, daily 1 AM cron + on-demand) &rarr; paper edit (Alfred generates segment-by-segment edit template from transcript) &rarr; editor handoff (assembled package with audio, transcript, paper edit, show notes draft, and editor brief). Full directory structure deployed at <code>~/.openclaw/riskcast/</code>. Transcription script at <code>riskcast-transcribe.sh</code>. Alfred is now an integral part of the production loop &mdash; on brand for a podcast about AI agents</li>
-          <li>Ran <code>openclaw doctor</code> and <code>openclaw security audit --deep</code> &mdash; baselined system health post-upgrade. 0 critical findings</li>
+          <li><strong>Deterministic workflow engine</strong> enabled. Lets us write pipelines with explicit approval gates and resume points instead of chaining shell scripts together</li>
+          <li>Workflows can now embed AI steps (classification, drafting) inside an otherwise deterministic flow &mdash; the AI does its job without deciding what comes next</li>
+          <li>First workflow written using it: the email triage pipeline. Five steps end-to-end, with approval gates on both Slack notifications. Runs on demand, on a schedule, or via event &mdash; not just on a cron</li>
+          <li><strong>RiskCast podcast production pipeline</strong> &mdash; built into Alfred. Four stages: raw audio in, transcription runs nightly, Alfred generates an edit template from the transcript, and a package is assembled for the editor with audio, transcript, edit notes, show notes draft, and brief. Alfred is now part of the production loop &mdash; on brand for a podcast about AI agents</li>
+          <li>Full system health and security audit after the upgrade. Nothing critical</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label known">Known Issues</div>
         <ul class="entry-list">
-          <li>Security audit flags Slack group allowlist as potential multi-user heuristic &mdash; expected and acceptable for the personal-assistant trust model</li>
+          <li>Security audit flags the Slack allowlist as a multi-user heuristic &mdash; expected and acceptable for a personal-assistant setup</li>
         </ul>
       </div>
     </div>
@@ -497,10 +496,8 @@
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li><strong>Drafting agent pipeline restored</strong> — a March 11 Claude session had created <code>surface-to-slack.sh</code> as a "pipeline unblock" that bypassed the LLM drafting agent entirely, posting raw notifications to Slack. The script was added to cron but never removed or documented, silently starving the drafter of work</li>
-          <li>Root cause: <code>surface-to-slack.sh</code> grabbed pending items before <code>drafting-queue.sh</code> could process them. All three OpenClaw cron jobs in <code>jobs.json</code> were also disabled</li>
-          <li>Restored <code>drafting-queue.sh</code> to system cron (1 min after classifier), shifted <code>surface-to-slack.sh</code> to 5 min later as a fallback</li>
-          <li>Rewrote <code>surface-to-slack.sh</code> to prefer drafted items (includes draft text in Slack posts), with a 10-min stale fallback for items drafting missed</li>
+          <li><strong>Drafting agent silently starved</strong> &mdash; an emergency workaround added a week earlier was quietly stealing work from the Drafting agent. It was grabbing emails before Drafting could write replies and posting raw notifications to Slack instead. The workaround was added to the schedule but never removed or documented</li>
+          <li>Reordered the schedule so the Drafting agent runs first, and rewrote the workaround as a fallback only. Drafting produces replies again; the fallback kicks in only if Drafting misses its window</li>
         </ul>
       </div>
     </div>
@@ -511,16 +508,16 @@
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li>Deployed sender-based pre-filter for email classifier — config-driven blocklist/whitelist in <code>email-filter-rules.json</code> to stop spam from being surfaced as leads</li>
-          <li>Reclassified stale queue items (ContentStudio, pdfFiller, DoorDash, Spectrum, etc.) polluting Slack channels</li>
-          <li>Added urgency cap to prevent junk mail from ever reaching <code>high</code> classification</li>
+          <li>Spam no longer surfaces as leads. Added a sender blocklist and allowlist to the email classifier, driven by config</li>
+          <li>Reclassified a backlog of junk mail (platform notifications, subscription mail) that had been polluting Slack channels</li>
+          <li>Urgency cap &mdash; junk mail can never be flagged high-priority</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label known">Known Issues</div>
         <ul class="entry-list">
-          <li><s><code>gmail-poll.sh</code> header parser still produces inconsistent list vs. dict format</s> &mdash; resolved 2026-03-24</li>
-          <li>Classifier accuracy remains a work-in-progress — sender-based rules help but LLM classification still needs tuning</li>
+          <li><s>Email header parsing inconsistency in the poller</s> &mdash; resolved 2026-03-24</li>
+          <li>Classifier accuracy is still a work in progress &mdash; sender-based rules help but the AI classification still needs tuning</li>
         </ul>
       </div>
     </div>
@@ -531,9 +528,9 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Presented OpenClaw at <strong>Community Night</strong> at Tabbris — first public demo of the system</li>
-          <li>Built interactive HTML slide deck covering architecture, security model, pipeline flow, and lessons learned</li>
-          <li>Deck reflects live system state: Gemini 3.1 Pro as primary, Qwen local fallback, four agents across two machines</li>
+          <li>Presented OpenClaw at <strong>Community Night</strong> at Tabbris &mdash; first public demo of the system</li>
+          <li>Built an interactive slide deck covering the architecture, security model, pipeline flow, and lessons learned</li>
+          <li>Deck reflects the live system at the time: Gemini as the primary model, local model as fallback, four agents running across two machines</li>
         </ul>
       </div>
     </div>
@@ -544,18 +541,18 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Weekly review system</strong> — first proof-of-concept review doc (W10) pulling from Granola meetings, Slack, and Gmail</li>
-          <li>Created <code>#sf_dashboard</code> private Slack channel as universal capture surface for Claude sessions and Alfred digests</li>
-          <li>Session capture pattern: every meaningful Claude session ends with a tagged post (<code>[BofA]</code>, <code>[Tabbris]</code>, <code>[OpenClaw]</code>, <code>[Personal]</code>)</li>
-          <li>Cowork scheduled task designed for Thursday morning reviews (before Olga and Heath 1:1s)</li>
-          <li>Google Drive folder architecture: Weekly Reviews, Granola Sync, Tracker, Projects</li>
+          <li><strong>Weekly review system</strong> &mdash; first working review doc pulling signal from meeting notes, Slack, and email into a single place</li>
+          <li>New private Slack channel as a universal capture surface for session summaries and Alfred digests</li>
+          <li>Session capture pattern &mdash; every meaningful work session ends with a tagged post so context gets written down somewhere durable</li>
+          <li>Scheduled weekly review time before recurring one-on-ones</li>
+          <li>Google Drive folder structure for weekly reviews, meeting sync, tracker, and projects</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Switched Alfred's primary model from Claude Sonnet to <strong>Gemini 2.5 Flash</strong> as temporary bridge while Anthropic API access is sorted between business and personal accounts</li>
-          <li>Architecture decision: Claude Projects are workspaces, not systems of record — aggregation happens via shared surfaces (Slack, Drive)</li>
+          <li>Switched Alfred&rsquo;s primary model from Claude to Gemini temporarily, while Anthropic access was being sorted out between business and personal accounts</li>
+          <li>Architecture decision &mdash; Claude Projects are workspaces, not systems of record. Aggregation happens in shared surfaces like Slack and Drive</li>
         </ul>
       </div>
     </div>
@@ -566,8 +563,8 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Granola integration</strong> — two-mode architecture deployed: Mode 1: Alfred reads meeting TLDRs from <code>#sf_granola_notes</code> for daily digests. Mode 2: Deep-dive prep via Granola MCP in Claude.ai sessions (browser-OAuth only, not available headlessly)</li>
-          <li>Alfred's Slack channel allowlist expanded to include <code>#sf_granola_notes</code> and <code>#sf_dashboard</code></li>
+          <li><strong>Meeting notes integration.</strong> Two modes: Alfred reads short meeting summaries from a dedicated Slack channel for daily digests; deeper meeting prep happens in a browser session with the full transcript</li>
+          <li>Expanded Alfred&rsquo;s Slack channel access to the new meeting-notes and dashboard channels</li>
         </ul>
       </div>
     </div>
@@ -578,7 +575,7 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Upgraded to <strong>OpenClaw v2026.3.2</strong>: native Ollama memory embedding support, <code>openclaw config validate</code> command, Slack Socket Mode fails fast on non-recoverable auth errors, Slack thread context injection limited to first turn, WhatsApp self-message detection, prompt injection hardening, heartbeat hot-reload, config backup permissions hardened to owner-only, cron session reaper fix</li>
+          <li>OpenClaw upgrade. Native support for local-model memory embeddings, a config validation command, faster Slack auth failure, tighter Slack thread context handling, WhatsApp self-message detection, prompt injection hardening, live heartbeat reload, permissions hardening, and a scheduled-job cleanup fix</li>
         </ul>
       </div>
     </div>
@@ -589,15 +586,15 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Friday marketing agent</strong> content engine seeded — content briefs, templates, content calendar, blog categories created. 4 blog categories published to Webflow CMS, 5 content briefs queued, 1 full draft in review. SEO audit completed for tabbris.com. All 6 page SEO title tags and meta descriptions pushed via Webflow API. 8 template blog posts archived</li>
-          <li>Friday's <strong>Scout &rarr; Writer &rarr; Publisher</strong> pipeline designed and partially wired</li>
-          <li>Webflow Designer MCP quirks documented: <code>set_text</code> works on Paragraph parents not String children; single-action calls only</li>
+          <li><strong>Friday&rsquo;s content engine seeded.</strong> Briefs, templates, content calendar, and blog categories created. Four categories published to the CMS, five briefs queued, one full draft in review. SEO audit completed for the Tabbris site. All page titles and meta descriptions pushed through the CMS. Eight legacy posts archived</li>
+          <li>Friday&rsquo;s three-stage pipeline (Scout &rarr; Writer &rarr; Publisher) designed and partially wired</li>
+          <li>Documented a few quirks in the Webflow automation tooling</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Updated Tabbris site testimonials — replaced placeholder content with real Google reviews (7 unique reviewers)</li>
+          <li>Replaced placeholder testimonials on the Tabbris site with real Google reviews (seven unique reviewers)</li>
         </ul>
       </div>
     </div>
@@ -608,15 +605,15 @@
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li>System audit identified <strong>three competing orchestration planes</strong> (OpenClaw cron, system cron, heartbeat docs) — root cause of most silent failures</li>
-          <li><code>ready-for-review.json</code> found stale since Feb 4 — Drafting agent confirmed idle due to broken upstream handoff</li>
-          <li>Shadow inbox accumulating 205 <code>pending_review</code> items with no surfacing mechanism</li>
+          <li>System audit identified <strong>three competing schedulers</strong> &mdash; root cause of most silent failures</li>
+          <li>Drafting agent had been idle for three weeks because its upstream handoff was broken</li>
+          <li>A shadow inbox had quietly accumulated hundreds of un-surfaced items with no way out</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><code>surface-to-slack.sh</code> bypass script — skips LLM drafting agent to get emails surfaced when pipeline is down</li>
+          <li>A bypass script that skips the Drafting agent, so at least the emails reach Slack while the main pipeline is being rebuilt</li>
         </ul>
       </div>
     </div>
@@ -627,17 +624,17 @@
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li><strong>Watchdog spam eliminated</strong> — added state-based deduplication (only alerts on status transitions, not every check cycle)</li>
-          <li>Alert consolidation: retired WhatsApp health alerts, all system alerts now route to Slack</li>
-          <li>Morning daily digest now always posts even when healthy — eliminates silence ambiguity</li>
+          <li><strong>Watchdog alert spam eliminated</strong> &mdash; alerts now fire only on status changes, not on every check</li>
+          <li>Consolidated all system alerts onto Slack. Retired the WhatsApp health pings</li>
+          <li>Morning digest always posts, even on healthy days, so silence can&rsquo;t be confused with something being wrong</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Evening check-in script (6 PM weekdays)</li>
-          <li>Interactive workflow visualizations mapping all 7 system pipelines</li>
-          <li>Friday Mac Mini audit and fix — rebuilt cron jobs, LaunchAgent, Slack channel bindings</li>
+          <li>Evening check-in (weekday 6 PM)</li>
+          <li>Interactive visualizations mapping all seven system pipelines</li>
+          <li>Audited and rebuilt the second Mac Mini&rsquo;s scheduled jobs, auto-start config, and Slack bindings</li>
         </ul>
       </div>
     </div>
@@ -648,8 +645,8 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Passive monitoring system deployed</strong> — five scripts on system crontab: <code>watchdog.sh</code> (every 5 min), <code>memory-guardian.sh</code> (every 2 min), <code>daily-digest.sh</code> (8 AM weekdays), <code>security-audit.sh</code> (6 AM Sundays), <code>canary-test.sh</code> (7 AM Mondays)</li>
-          <li>Remote SSH access via Termius + Tailscale fully configured (ed25519 key auth)</li>
+          <li><strong>Passive monitoring deployed.</strong> Five scheduled scripts covering watchdog (every five minutes), memory guardian (every two), daily digest (weekday mornings), security audit (Sundays), and a canary test (Mondays)</li>
+          <li>Secure remote access configured end-to-end</li>
         </ul>
       </div>
     </div>
@@ -660,8 +657,8 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Identified and analyzed $52 API cost spike from 10.5M cache write tokens during extended dev session</li>
-          <li>Designed memory architecture refactor: monolithic workspace files &rarr; lean Memory.md + on-demand Skills folder</li>
+          <li>Analyzed an unexpected API cost spike from an extended development session &mdash; too much context being re-cached on every call</li>
+          <li>Designed a leaner memory architecture &mdash; small always-on memory plus on-demand skill files, instead of loading everything every turn</li>
         </ul>
       </div>
     </div>
@@ -672,9 +669,9 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Alfred connected to Slack</strong> — joined three core Tabbris channels: <code>#ta_events-control</code> (event inquiry pipeline), <code>#ta_mission-control</code> (membership and general ops), <code>#tz_marketing</code> (Friday's marketing channel)</li>
-          <li>HEARTBEAT.md updated with Event Inquiry Playbook v1.3 routing</li>
-          <li><strong>Cross-provider fallback</strong> designed: Qwen3 via Ollama as local fallback when cloud APIs rate-limit</li>
+          <li><strong>Alfred connected to Slack</strong> &mdash; joined three core Tabbris channels for events, membership and general ops, and Friday&rsquo;s marketing</li>
+          <li>Event inquiry playbook wired into Alfred&rsquo;s routines</li>
+          <li><strong>Cross-provider fallback designed</strong> &mdash; the local model kicks in when cloud APIs rate-limit</li>
         </ul>
       </div>
     </div>
@@ -685,8 +682,8 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Upgraded Monitor agent from Qwen 2.5 7B to <strong>Qwen3-8B</strong></li>
-          <li>Identified $90 unexpected API charges: Drafting agent's 10-min cron firing with 180k-token context loads, failing on sandbox mount, repeating — 72.5% of costs from cache writes</li>
+          <li>Upgraded the local model powering the Monitor agent</li>
+          <li>Identified a round of unexpected API charges. The Drafting agent was firing every ten minutes with a huge context, failing on a sandbox issue, and repeating. Nearly three-quarters of the cost was wasted cache writes</li>
         </ul>
       </div>
     </div>
@@ -697,8 +694,7 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Remote access working</strong>: Tailscale + Termius from iPhone to Mac Mini</li>
-          <li>Mobile workflow: Tailscale &rarr; Termius &rarr; SSH &rarr; <code>openclaw status</code> from anywhere</li>
+          <li><strong>Remote access working</strong> &mdash; check system status from anywhere on a phone</li>
         </ul>
       </div>
     </div>
@@ -709,14 +705,14 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Completed Mac Mini migration from 16GB M4 to <strong>32GB M4</strong> using Migration Assistant</li>
-          <li>Old 16GB Mac Mini repurposed: AV/lights for event space + dedicated Friday marketing agent</li>
+          <li>Completed the hardware migration from the 16GB Mac Mini to a 32GB Mac Mini</li>
+          <li>Old Mac Mini repurposed &mdash; AV and lighting for the event space, plus the dedicated Friday marketing agent</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Tabbris SEO automation feasibility research: Webflow CMS API mapped, realistic cost $28&ndash;59/month, 8-week plan</li>
+          <li>SEO automation feasibility research for the Tabbris site &mdash; CMS API mapped, realistic monthly cost scoped, eight-week plan</li>
         </ul>
       </div>
     </div>
@@ -727,9 +723,9 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>OpenClaw System Definition document</strong> — formal architecture spec covering three-agent roles, infrastructure, channels, known issues, and debt</li>
-          <li>Custom project instructions for the OpenClaw Claude project</li>
-          <li>Updated Tabbris privacy policy on Webflow with SMS/text messaging terms</li>
+          <li><strong>OpenClaw System Definition</strong> &mdash; a formal architecture spec covering the three-agent roles, infrastructure, channels, known issues, and technical debt</li>
+          <li>Custom project instructions</li>
+          <li>Updated the Tabbris privacy policy with SMS and text messaging terms</li>
         </ul>
       </div>
     </div>
@@ -740,8 +736,8 @@
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Decided on Qwen3 14B as Monitor upgrade path (thinking mode OFF for fast classification)</li>
-          <li>Designed hub-and-spoke sub-agent architecture: dedicated agents per business unit with Alfred as orchestrator</li>
+          <li>Decided on the next upgrade path for the Monitor&rsquo;s local model, tuned for fast classification</li>
+          <li>Designed a hub-and-spoke architecture &mdash; dedicated agents per business area with Alfred orchestrating</li>
         </ul>
       </div>
     </div>
@@ -752,9 +748,9 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Gmail integration architecture for info@tabbris.com — OAuth setup, sanitization layer, data flow, security model</li>
-          <li>Email pipeline: Monitor polls Gmail &rarr; classifies &rarr; handoff &rarr; Drafting composes &rarr; Alfred reviews &rarr; sends</li>
-          <li>Google Drive sync tiers: Tier 1 (pricing, venue, FAQ) daily sync; Tier 2 on-demand; Tier 3 (financials) excluded</li>
+          <li>Gmail integration architecture for the business inbox &mdash; OAuth, sanitization, data flow, security model</li>
+          <li>Email pipeline designed: Monitor reads Gmail, classifies, hands off to Drafting, which composes a reply, Alfred reviews, then sends</li>
+          <li>Tiered Google Drive sync &mdash; the most-referenced material (pricing, venue info, FAQs) refreshed daily, the rest on-demand, financials excluded</li>
         </ul>
       </div>
     </div>
@@ -765,14 +761,14 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Alfred's first autonomous <strong>UCC content production</strong> via WhatsApp — TikTok scripts (10), LinkedIn templates (5), content calendar CSV, daily guide, visual asset batches</li>
-          <li>UCC Master Content Calendar with weekly initiatives and platform rotation</li>
+          <li>Alfred&rsquo;s first autonomous <strong>content production</strong> over WhatsApp &mdash; TikTok scripts, LinkedIn templates, a content calendar, a daily guide, and visual asset batches</li>
+          <li>Master content calendar with weekly initiatives and platform rotation</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li>Refined UCC image generation prompts: mandatory realism checklist, removed third-party brand references</li>
+          <li>Refined the image generation prompts &mdash; mandatory realism checklist, no third-party brand references</li>
         </ul>
       </div>
     </div>
@@ -783,16 +779,16 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Switched memory embeddings from OpenAI to <strong>local Ollama nomic-embed-text</strong> (768 dimensions) — eliminated external API dependency</li>
-          <li>STEFANFRIENDCONTEXT.md — comprehensive personal context document for Alfred's workspace</li>
-          <li>Restored HEARTBEAT.md with three-section structure and 30m cadence</li>
+          <li>Switched memory embeddings from a cloud provider to a local model &mdash; removed an external dependency and the associated quota risk</li>
+          <li>Comprehensive personal context document for Alfred&rsquo;s workspace</li>
+          <li>Restored the heartbeat routine structure</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li><strong>Alfred's persistent memory loss</strong>: OpenAI embedding quota exhaustion (429) silently breaking <code>memory_search</code></li>
-          <li>Identified missing daily memory files (Feb 3&ndash;7 gap) from HEARTBEAT.md overwrite</li>
+          <li><strong>Alfred&rsquo;s memory was silently broken.</strong> The cloud embedding provider was over quota and memory search was failing with no error. Switching to local fixed it</li>
+          <li>Identified a four-day gap in daily memory files caused by a previous overwrite</li>
         </ul>
       </div>
     </div>
@@ -803,23 +799,23 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>launchd plist</strong> for OpenClaw gateway — RunAtLoad, KeepAlive, auto-restart on crash</li>
-          <li>Health check script (<code>healthcheck.sh</code>) — monitors gateway, WhatsApp bridge, log freshness</li>
-          <li>Disabled Mac Mini sleep, enabled Wake on LAN, enabled auto-login for unattended boot</li>
+          <li><strong>Auto-start configuration</strong> for the gateway &mdash; launches on boot, stays up, restarts on crash</li>
+          <li>Health check script monitoring the gateway, the WhatsApp bridge, and log freshness</li>
+          <li>Disabled Mac Mini sleep, enabled Wake on LAN, enabled auto-login for unattended operation</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label changed">Changed</div>
         <ul class="entry-list">
-          <li><strong>OpenClaw survives reboots</strong>: boot &rarr; auto-login &rarr; Tailscale &rarr; Ollama &rarr; gateway &rarr; WhatsApp &rarr; Alfred alive</li>
-          <li>Decoupled Alfred from TUI — gateway handles routing independently</li>
+          <li><strong>OpenClaw survives reboots end-to-end</strong> &mdash; boot, auto-login, network, local model, gateway, WhatsApp, Alfred alive</li>
+          <li>Decoupled Alfred from the terminal session &mdash; the gateway handles routing independently</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li>Docker connectivity error — auto-start + safe failure defaults</li>
-          <li>Filesystem cleanup post-Migration-Assistant</li>
+          <li>Docker connectivity on startup, with safe failure defaults</li>
+          <li>Filesystem cleanup after the Migration Assistant run</li>
         </ul>
       </div>
     </div>
@@ -830,22 +826,22 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Three-agent architecture fully configured</strong>: Alfred (main, Claude Sonnet, unsandboxed, full send permissions), Monitor (Qwen 7B via Ollama, sandboxed, read-only), Drafting (Claude Sonnet, sandboxed, no send)</li>
-          <li>WhatsApp channel bindings: Stefan &rarr; main agent, wife &rarr; monitor agent</li>
-          <li><code>selfChatMode: true</code> — WhatsApp self-chat as primary command interface</li>
-          <li><strong>File-based handoff pipeline</strong>: <code>needs-draft.json</code> &rarr; <code>ready-for-review.json</code></li>
-          <li>Handoff JSON schema defined</li>
-          <li>Drafting agent cron (every 10 min) and Alfred heartbeat (every 30 min)</li>
-          <li>Tabbris event inquiry playbook — classification tiers, qualifying questions, upsell triggers, objection handling</li>
-          <li>Security hardening: <code>web_fetch</code> and <code>browser</code> denied for Monitor</li>
+          <li><strong>Three-agent architecture fully configured.</strong> Alfred as the main agent with full privileges. Monitor powered by a local model, sandboxed and read-only. Drafting sandboxed with no send permission</li>
+          <li>WhatsApp routing &mdash; Stefan&rsquo;s messages go to Alfred, Stefan&rsquo;s wife&rsquo;s messages go to the Monitor</li>
+          <li>Self-chat over WhatsApp as the primary command interface</li>
+          <li><strong>File-based handoff pipeline</strong> between agents</li>
+          <li>Handoff data format defined</li>
+          <li>Drafting runs on a schedule, Alfred on a heartbeat</li>
+          <li>Event inquiry playbook &mdash; classification tiers, qualifying questions, upsell triggers, objection handling</li>
+          <li>Security hardening &mdash; web fetch and browser access denied to the Monitor</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li>Alfred not responding via WhatsApp: workspace files contained sandbox references causing self-restriction</li>
-          <li>Token burn from Opus fallback: default model was Opus; fixed to Sonnet</li>
-          <li>Wife's WhatsApp binding: was routing to main agent, corrected to monitor</li>
+          <li>Alfred not responding over WhatsApp &mdash; workspace files referenced a sandbox config that was self-restricting</li>
+          <li>Token burn from a premium-tier fallback &mdash; default model was wrong, switched to the correct tier</li>
+          <li>Wife&rsquo;s WhatsApp was routing to the wrong agent</li>
         </ul>
       </div>
     </div>
@@ -856,13 +852,13 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li>Separate Anthropic API key created for OpenClaw (decoupled from Claude subscription)</li>
+          <li>Separate Anthropic API key for OpenClaw, decoupled from the personal subscription</li>
         </ul>
       </div>
       <div class="entry-group">
         <div class="entry-label fixed">Fixed</div>
         <ul class="entry-list">
-          <li>HTTP 429 rate limit errors — oversized system prompts as root cause; gateway hanging 10+ min on retry</li>
+          <li>Rate-limit errors traced to oversized system prompts. The gateway had been hanging for 10+ minutes on retry</li>
         </ul>
       </div>
     </div>
@@ -873,12 +869,12 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>OpenClaw gateway first running</strong> on Mac Mini M4 (16GB)</li>
-          <li>Ollama installed with Qwen 2.5:7b for local inference</li>
-          <li>WhatsApp channel paired and linked</li>
-          <li>Tailscale configured for remote access</li>
-          <li>Three-agent architecture concept: Monitor (observe) &rarr; Drafting (compose) &rarr; Alfred (review + send)</li>
-          <li>Channel latency tiers: WhatsApp self-chat (real-time), info@ (5&ndash;10m), wife's WhatsApp (30m), personal Gmail (1&ndash;2h)</li>
+          <li><strong>OpenClaw gateway running for the first time</strong> on the 16GB Mac Mini</li>
+          <li>Local model installed for on-device inference</li>
+          <li>WhatsApp channel paired</li>
+          <li>Secure remote access configured</li>
+          <li>Three-agent concept defined &mdash; Monitor observes, Drafting composes, Alfred reviews and sends</li>
+          <li>Channel latency tiers &mdash; WhatsApp self-chat in real time, the business inbox every 5 to 10 minutes, wife&rsquo;s WhatsApp every 30 minutes, personal Gmail every 1 to 2 hours</li>
         </ul>
       </div>
     </div>
