@@ -107,6 +107,8 @@
     letter-spacing: 0.08em;
     color: var(--text-dim);
   }
+  .nav-brand { text-decoration: none; }
+  .nav-brand:hover { color: var(--text); }
   .nav-brand span { color: var(--accent); }
   .nav-links {
     display: flex;
@@ -122,6 +124,7 @@
     transition: color 0.2s ease;
   }
   .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--accent-soft); }
 
   /* ── Hero ── */
   .hero {
@@ -497,7 +500,7 @@
 
   <!-- Nav -->
   <nav>
-    <div class="nav-brand"><span>&gt;</span> riskcast.ai</div>
+    <a href="/" class="nav-brand"><span>&gt;</span> riskcast.ai</a>
     <div class="nav-links">
       <a href="/changelog" class="nav-link">changelog</a>
       <a href="/episodes" class="nav-link">episodes</a>
