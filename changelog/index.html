@@ -4,11 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Changelog — RiskCast</title>
-<meta name="description" content="What actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed.">
+<meta name="description" content="We retired it in July 2026; this log is the record of what shipped while it ran. RiskCast started because we were building the thing we were talking about: a self-hosted, multi-agent AI system built on OpenClaw that ran real business operations. What actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed.">
 <meta property="og:title" content="RiskCast Changelog">
-<meta property="og:description" content="The build log for OpenClaw and RiskCast. Every entry traces back to a real session, a real commit, or a real failure.">
+<meta property="og:description" content="We retired it in July 2026; this log is the record of what shipped while it ran. RiskCast started because we were building the thing we were talking about: a self-hosted, multi-agent AI system built on OpenClaw that ran real business operations. What actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://riskcast.ai/changelog">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RiskCast Changelog">
+<meta name="twitter:description" content="We retired it in July 2026; this log is the record of what shipped while it ran. RiskCast started because we were building the thing we were talking about: a self-hosted, multi-agent AI system built on OpenClaw that ran real business operations. What actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed.">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <link rel="icon" type="image/png" href="../favicon.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -214,6 +217,7 @@
   .entry-label.added { color: #5cb885; }
   .entry-label.changed { color: #d4a843; }
   .entry-label.fixed { color: #5b9bd5; }
+  .entry-label.retired { color: var(--accent); }
   .entry-label.known { color: var(--text-muted); }
 
   .entry-list {
@@ -313,12 +317,23 @@
     <div class="hero-label reveal d1">Build Log</div>
     <h1 class="reveal d2">Change<em>log</em></h1>
     <p class="hero-text reveal d3"><strong>This isn't a changelog for a SaaS product. It's a build log.</strong></p>
-    <p class="hero-text reveal d3">RiskCast exists because we're building the thing we're talking about. <a href="https://openclaw.ai" target="_blank" rel="noopener">OpenClaw</a> is a self-hosted, multi-agent AI system that runs real business operations — email triage, event inquiry responses, SEO content, meeting digests — across two Mac Minis at <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris Innovation Center</a> in Charlotte, NC.</p>
+    <p class="hero-text reveal d3">RiskCast started because we were building the thing we were talking about: a self-hosted, multi-agent AI system built on <a href="https://openclaw.ai" target="_blank" rel="noopener">OpenClaw</a> that ran real business operations — email triage, event inquiry responses, SEO content, meeting digests — across two Mac Minis at <a href="https://tabbris.com" target="_blank" rel="noopener">Tabbris Innovation Center</a> in Charlotte, NC. We retired it in July 2026; this log is the record of what shipped while it ran.</p>
     <p class="hero-text reveal d3">This page documents what actually shipped. Not roadmaps, not intentions — what got built, what broke, and what we fixed. Every entry traces back to a real session, a real commit, or a real failure.</p>
   </header>
 
   <!-- Changelog -->
   <div class="changelog">
+
+    <!-- 2026-07 -->
+    <div class="entry reveal">
+      <div class="entry-date">2026-07</div>
+      <div class="entry-group">
+        <div class="entry-label retired">Retired</div>
+        <ul class="entry-list">
+          <li>Shut down the OpenClaw-based system. Keeping it running took more tinkering and maintenance than it returned, and newer off-the-shelf agents had become better at the same jobs, as we expected they would. What we kept: specs first, least-privilege agents, and human approval gates.</li>
+        </ul>
+      </div>
+    </div>
 
     <!-- 2026-04-17 -->
     <div class="entry reveal">
@@ -411,7 +426,7 @@
       <div class="entry-group">
         <div class="entry-label added">Added</div>
         <ul class="entry-list">
-          <li><strong>Operational workflows</strong> &mdash; Alfred can now handle recurring monthly vendor revenue reports end-to-end. Reads the email (including image attachments), calculates ownership splits, updates the financial model, and posts a confirmation to Slack. Includes a month-end checklist so nothing slips through</li>
+          <li><strong>Operational workflows</strong> &mdash; Alfred can now handle a recurring financial report for a business client end-to-end. Reads the email (including attachments), completes the report, and posts a confirmation to Slack. Includes a month-end checklist so nothing slips through</li>
           <li><strong>Image reading</strong> &mdash; Alfred can now open and read image-based reports that vendors send as attachments</li>
           <li><strong>System under version control</strong> &mdash; moved the entire OpenClaw workspace into a private code repository. All three agent workspaces, pipeline scripts, skills, workflows, and a sanitized config template. Anything can now be edited from a phone</li>
           <li><strong>Full system inventory</strong> &mdash; audited the Mac Mini end-to-end before the move: files, scheduled jobs, local models, running agents and sessions. Everything unversioned got mapped into the new repository</li>
